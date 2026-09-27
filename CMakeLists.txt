@@ -12,7 +12,10 @@ set(CMAKE_AUTOUIC ON)
 # ============================================================
 set(MY_APP_NAME           "MyToolBox")
 set(MY_APP_DISPLAY_NAME   "多功能轻量工具箱")
-set(MY_APP_VERSION        "1.0.0")
+
+# ★ 语义化版本主体（手动维护，发新版本时改这里）
+set(MY_APP_VERSION_CORE   "1.0.0")
+
 set(MY_APP_COMPANY        "Lychee666")
 set(MY_APP_DESCRIPTION    "集成拍照、录像、录屏、播放、压缩包预览、图片查看、文件搜索、内嵌浏览器的轻量工具箱")
 set(MY_APP_COPYRIGHT      "Copyright (C) 2025 Lychee666. All rights reserved.")
@@ -23,8 +26,52 @@ set(MY_HELPER_NAME        "MyToolBoxBrowser")
 set(MY_HELPER_DISPLAY     "MyToolBox 浏览器")
 set(MY_HELPER_DESCRIPTION "MyToolBox 独立浏览器（WebView2）")
 
-# ---- 拆分版本号供 .rc 使用 ----
-string(REPLACE "." ";" _ver_list "${MY_APP_VERSION}")
+# ============================================================
+#        ★ 版本号自动生成
+#        格式：<core>-0.<N>.0+<git-hash>
+#          - core       = MY_APP_VERSION_CORE（1.0.0）
+#          - N          = version.txt 里的构建号（每次 cmake configure +1）
+#          - git-hash   = git rev-parse --short=9 HEAD
+# ============================================================
+
+# ---- 1. 读取/递增构建号 ----
+set(VERSION_FILE "${CMAKE_SOURCE_DIR}/version.txt")
+
+if(EXISTS "${VERSION_FILE}")
+    file(READ "${VERSION_FILE}" VER_BUILD)
+    string(STRIP "${VER_BUILD}" VER_BUILD)
+    if(NOT VER_BUILD MATCHES "^[0-9]+$")
+        set(VER_BUILD 0)
+    endif()
+else()
+    set(VER_BUILD 0)
+endif()
+
+# 每次 cmake configure 时 +1（构建号只增不减）
+math(EXPR VER_BUILD "${VER_BUILD} + 1")
+file(WRITE "${VERSION_FILE}" "${VER_BUILD}")
+
+# ---- 2. 抓 Git 短 hash ----
+find_package(Git QUIET)
+set(GIT_HASH "nogit")
+if(GIT_FOUND)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" rev-parse --short=9 HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(GIT_HASH STREQUAL "")
+        set(GIT_HASH "nogit")
+    endif()
+endif()
+
+# ---- 3. 拼完整版本号 ----
+set(MY_APP_VERSION "${MY_APP_VERSION_CORE}-0.${VER_BUILD}.0+${GIT_HASH}")
+
+# ---- 4. 从 CORE 拆出数字版本（供 .rc 的 FILEVERSION 使用）----
+string(REPLACE "." ";" _ver_list "${MY_APP_VERSION_CORE}")
 list(LENGTH _ver_list _ver_count)
 list(GET _ver_list 0 VER_MAJOR)
 if(_ver_count GREATER 1)
@@ -37,7 +84,15 @@ if(_ver_count GREATER 2)
 else()
     set(VER_PATCH 0)
 endif()
-set(VER_BUILD 0)
+# VER_BUILD 已在前面从 version.txt 读出并 +1，直接用作 .rc 的第 4 段
+
+message(STATUS "============================================================")
+message(STATUS "  Version : ${MY_APP_VERSION}")
+message(STATUS "  Core    : ${MY_APP_VERSION_CORE}")
+message(STATUS "  Build   : ${VER_BUILD}")
+message(STATUS "  GitHash : ${GIT_HASH}")
+message(STATUS "  RC ver  : ${VER_MAJOR}.${VER_MINOR}.${VER_PATCH}.${VER_BUILD}")
+message(STATUS "============================================================")
 
 # ============================================================
 #        强制 Qt / RC 编译器使用 MSVC 版本
@@ -117,7 +172,7 @@ set(SHARED_BROWSER_SOURCES
     ${SRC_DIR}/WebView2Runtime.cpp
     ${SRC_DIR}/WebView2Runtime.h
 
-    # ---- 历史 / 下载（★ 新增）----
+    # ---- 历史 / 下载 ----
     ${SRC_DIR}/BrowserHistory.cpp
     ${SRC_DIR}/BrowserHistory.h
     ${SRC_DIR}/DownloadsManager.cpp
@@ -163,7 +218,7 @@ add_executable(MyToolBox WIN32
     ${SRC_DIR}/AboutDialog.cpp
     ${SRC_DIR}/ThemeManager.cpp
 
-    # ★ 新增：历史 / 下载
+    # ---- 历史 / 下载 ----
     ${SRC_DIR}/BrowserHistory.cpp
     ${SRC_DIR}/DownloadsManager.cpp
     ${SRC_DIR}/HistoryDialog.cpp

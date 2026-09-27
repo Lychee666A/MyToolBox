@@ -20,6 +20,11 @@
 #include <QDateTime>
 #include <QSysInfo>
 #include <QFile>
+#include <QProcess>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
+#include <QDebug>
 
 // ============================================================
 //                      构造 / 析构
@@ -36,7 +41,6 @@ AboutDialog::AboutDialog(QWidget *parent)
 	m_scrollTimer->setInterval(30);
 	connect(m_scrollTimer, &QTimer::timeout, this, &AboutDialog::onScrollTick);
 	
-	// ★ 主题变化时，重新加载 HTML 以跟随主题
 	connect(&ThemeManager::instance(), &ThemeManager::themeChanged,
 			this, &AboutDialog::onThemeChanged);
 }
@@ -57,7 +61,6 @@ void AboutDialog::buildUi() {
 	iconLabel->setFixedSize(80, 80);
 	iconLabel->setAlignment(Qt::AlignCenter);
 	iconLabel->setObjectName("aboutIcon");
-	// 深浅主题下的背景由 QSS 控制，初始给个白的
 	iconLabel->setStyleSheet(
 							 "background:#ffffff; border:1px solid #dadce0; border-radius:8px;");
 	
@@ -80,7 +83,7 @@ void AboutDialog::buildUi() {
 						   .arg(AppInfo::Version(), QT_VERSION_STR, QSysInfo::prettyProductName()),
 						   this);
 	sub->setTextFormat(Qt::RichText);
-	sub->setObjectName("aboutSub");        // 由 QSS 控制颜色
+	sub->setObjectName("aboutSub");
 	
 	titleBox->addWidget(title);
 	titleBox->addWidget(sub);
@@ -101,7 +104,24 @@ void AboutDialog::buildUi() {
 	m_categories->setFixedWidth(160);
 	
 	m_viewer = new QTextBrowser(splitter);
-	m_viewer->setOpenExternalLinks(true);
+	// ★ 不自动打开链接，由 anchorClicked 拦截，交给 Helper
+	m_viewer->setOpenExternalLinks(false);
+	m_viewer->setOpenLinks(false);
+	
+	connect(m_viewer, &QTextBrowser::anchorClicked,
+			this, [this](const QUrl &url) {
+				if (url.isEmpty()) return;
+				
+				// 内部锚点（#xxx）交回给 QTextBrowser
+				const QString s = url.toString();
+				if ((url.scheme().isEmpty()) && s.startsWith('#')) {
+					m_viewer->scrollToAnchor(s.mid(1));
+					return;
+				}
+				
+				qDebug() << "[About] anchorClicked:" << url.toString();
+				openUrlInHelper(url.toString());
+			});
 	
 	splitter->addWidget(m_categories);
 	splitter->addWidget(m_viewer);
@@ -155,7 +175,7 @@ void AboutDialog::buildUi() {
 
 void AboutDialog::addCategory(const QString &title, const QString &resourceName) {
 	m_categories->addItem(title);
-	m_htmlPaths.append(resourceName);                // ★ 保存原始路径
+	m_htmlPaths.append(resourceName);
 	m_htmlPages.append(loadHtml(resourceName));
 }
 
@@ -170,7 +190,6 @@ QString AboutDialog::loadHtml(const QString &resourceName) const {
 	QString html = QString::fromUtf8(f.readAll());
 	f.close();
 	
-	// 用 AppInfo 统一替换所有占位符
 	html.replace("__APP_NAME__",    AppInfo::DisplayName());
 	html.replace("__APP_VERSION__", AppInfo::Version());
 	html.replace("__QT_VERSION__",  QT_VERSION_STR);
@@ -265,13 +284,11 @@ void AboutDialog::onThemeChanged(bool /*dark*/) {
 void AboutDialog::reloadAllPages() {
 	const int cur = m_categories->currentRow();
 	
-	// 用新主题重新生成所有页
 	m_htmlPages.clear();
 	for (const QString &path : m_htmlPaths) {
 		m_htmlPages.append(loadHtml(path));
 	}
 	
-	// 恢复当前页 + 滚动位置
 	if (cur >= 0 && cur < m_htmlPages.size()) {
 		const int scroll = m_viewer->verticalScrollBar()->value();
 		m_viewer->setHtml(m_htmlPages[cur]);
@@ -347,15 +364,56 @@ void AboutDialog::closeEvent(QCloseEvent *e) {
 }
 
 // ============================================================
-//                      外部链接 / 复制
+//  ★ 用 Helper 打开 URL（Kiosk 模式）
+// ============================================================
+bool AboutDialog::openUrlInHelper(const QString &url)
+{
+	if (url.isEmpty()) return false;
+	
+	const QUrl u(url);
+	if (u.scheme() != "http" && u.scheme() != "https" && u.scheme() != "file") {
+		QDesktopServices::openUrl(u);
+		return false;
+	}
+	
+	const QString appDir = QCoreApplication::applicationDirPath();
+	QString helper = QDir(appDir).filePath("MyToolBoxBrowser.exe");
+	
+	qDebug() << "[About] Helper path:" << helper;
+	qDebug() << "[About] Exists?" << QFileInfo::exists(helper);
+	
+	if (!QFileInfo::exists(helper)) {
+		qWarning() << "[About] 找不到 MyToolBoxBrowser.exe，回退到系统浏览器";
+		QDesktopServices::openUrl(u);
+		return false;
+	}
+	
+	QStringList args;
+	args << "--kiosk"
+	<< "--new-window"
+	<< "--title" << QString("%1 - %2").arg(AppInfo::DisplayName(), windowTitle())
+	<< url;
+	
+	qDebug() << "[About] Launching:" << helper << args;
+	bool ok = QProcess::startDetached(helper, args);
+	qDebug() << "[About] Launch result:" << ok;
+	
+	if (!ok) {
+		qWarning() << "[About] 启动 Helper 失败，回退到系统浏览器";
+		QDesktopServices::openUrl(u);
+	}
+	return ok;
+}
+
+// ============================================================
+//                      外部链接
 // ============================================================
 void AboutDialog::onOpenLicense() {
-	QDesktopServices::openUrl(QUrl("https://www.gnu.org/licenses/gpl-3.0.html"));
+	openUrlInHelper("https://www.gnu.org/licenses/gpl-3.0.html");
 }
 
 void AboutDialog::onOpenQtLicense() {
-	QDesktopServices::openUrl(
-							  QUrl("https://www.qt.io/licensing/open-source-lgpl-obligations"));
+	openUrlInHelper("https://www.qt.io/licensing/open-source-lgpl-obligations");
 }
 
 void AboutDialog::onCopyVersion() {

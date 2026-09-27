@@ -53,6 +53,7 @@ private:
 	QComboBox *m_cmbVideoCodec = nullptr;
 	QComboBox *m_cmbQuality = nullptr;
 	QComboBox *m_cmbAudioFormat = nullptr;
+	QCheckBox *m_chkCameraAutoStart = nullptr;
 
 	// 录屏
 	QComboBox *m_cmbScreenFps = nullptr;

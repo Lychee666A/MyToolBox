@@ -26,7 +26,7 @@ private slots:
 	void onOpenLicense();
 	void onOpenQtLicense();
 	void onCopyVersion();
-	void onThemeChanged(bool dark);       // ★ 新增：主题变化
+	void onThemeChanged(bool dark);
 	
 private:
 	void buildUi();
@@ -36,7 +36,10 @@ private:
 	QString wrapWithStyle(const QString &html) const;
 	
 	void stopAutoScroll();
-	void reloadAllPages();                // ★ 新增：重新加载所有页
+	void reloadAllPages();
+	
+	// ★ 新增：用 Helper 打开 URL
+	bool openUrlInHelper(const QString &url);
 	
 	QListWidget  *m_categories = nullptr;
 	QTextBrowser *m_viewer = nullptr;
@@ -46,7 +49,7 @@ private:
 	QTimer       *m_scrollTimer = nullptr;
 	
 	QVector<QString> m_htmlPages;
-	QVector<QString> m_htmlPaths;         // ★ 新增：保存原始资源路径
+	QVector<QString> m_htmlPaths;
 	
 	int  m_scrollStep = 0;
 	bool m_autoScrolling = false;

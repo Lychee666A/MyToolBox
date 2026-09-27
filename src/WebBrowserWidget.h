@@ -30,7 +30,11 @@ public:
 	void openUrlInNewTab(const QString &url);
 	void navigateTo(const QString &url);
 	
-	// 供 QShortcut / 菜单调用
+	void setKioskMode(bool enabled);
+	bool isKioskMode() const { return m_kioskMode; }
+	
+	void setInitialUrl(const QString &url);
+	
 	void closeCurrentTab();
 	void restoreLastClosedTab();
 	void openHistoryDialog();
@@ -71,9 +75,10 @@ private:
 	void showBrowserPage();
 	void showDownloadPage();
 	
-	// ★ 快捷键 & 菜单
 	void setupShortcuts();
 	void showMenuPopup();
+	
+	void refreshPlusTab();
 	
 	WebPageView *currentPage() const;
 	void updateAddressFromCurrent();
@@ -98,31 +103,33 @@ private:
 	QPushButton *m_btnGo = nullptr;
 	QPushButton *m_btnDevTools = nullptr;
 	QPushButton *m_btnNewTab = nullptr;
-	QPushButton *m_btnMenu = nullptr;      // ★ 菜单按钮
+	QPushButton *m_btnMenu = nullptr;
 	QLabel      *m_statusLabel = nullptr;
 	
-	// ---- 查找栏 ----
 	QWidget     *m_findBar   = nullptr;
 	QLineEdit   *m_findEdit  = nullptr;
 	QPushButton *m_findNext  = nullptr;
 	QPushButton *m_findPrev  = nullptr;
 	QPushButton *m_findClose = nullptr;
 	
-	// ---- 下载引导页 ----
 	QWidget     *m_downloadPage = nullptr;
 	QLabel      *m_downloadTitle = nullptr;
 	QLabel      *m_downloadDesc = nullptr;
 	QPushButton *m_btnDownload = nullptr;
 	QPushButton *m_btnRetry = nullptr;
 	
-	// ---- 历史 / 下载 ----
 	BrowserHistory   *m_history   = nullptr;
 	DownloadsManager *m_downloads = nullptr;
 	
-	// ---- WebView2 ----
 	Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_env;
 	bool m_envReady = false;
 	bool m_webViewInitialized = false;
+	
+	bool m_kioskMode = false;
+	QString m_pendingUrl;
+	
+	// ★ 用指针记录 + tab 的 widget（不用索引，索引会变）
+	QWidget *m_plusTabWidget = nullptr;
 	
 	QString m_homeUrl;
 	

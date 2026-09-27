@@ -142,6 +142,9 @@ void SettingsDialog::buildUi() {
 		m_cmbAudioFormat->addItem("WAV", "wav");
 		form->addRow(tr("录音格式："), m_cmbAudioFormat);
 
+		m_chkCameraAutoStart = new QCheckBox(tr("进入拍照页时自动开启摄像头"), page);
+		form->addRow(QString(), m_chkCameraAutoStart);
+
 		tabs->addTab(page, tr("拍照/录像"));
 	}
 
@@ -331,6 +334,7 @@ void SettingsDialog::loadFromSettings() {
 		int i = m_cmbAudioFormat->findData(s.cameraAudioFormat());
 		if (i >= 0) m_cmbAudioFormat->setCurrentIndex(i);
 	}
+	m_chkCameraAutoStart->setChecked(s.cameraAutoStart());
 
 	// 录屏
 	{
@@ -407,6 +411,7 @@ void SettingsDialog::saveToSettings() {
 	s.setCameraVideoCodec(m_cmbVideoCodec->currentData().toString());
 	s.setCameraQuality(m_cmbQuality->currentData().toString());
 	s.setCameraAudioFormat(m_cmbAudioFormat->currentData().toString());
+	s.setCameraAutoStart(m_chkCameraAutoStart->isChecked());
 
 	// 录屏
 	s.setScreenCaptureType(m_cmbScreenCaptureType->currentData().toInt());
@@ -424,16 +429,15 @@ void SettingsDialog::saveToSettings() {
 	s.setSearchDefaultSort(m_cmbDefaultSort->currentData().toInt());
 }
 
-void SettingsDialog::onManageSearchEngines()
-{
+void SettingsDialog::onManageSearchEngines() {
 	SearchEngineDialog dlg(this);
 	dlg.exec();
-	
+
 	// 刷新摘要
 	auto &s = SettingsManager::instance();
 	const auto def = s.defaultSearchEngine();
 	m_lblSearchEnginesSummary->setText(
-									   def.name.isEmpty() ? tr("(未设置)") : def.name);
+	    def.name.isEmpty() ? tr("(未设置)") : def.name);
 }
 
 void SettingsDialog::onAccept() {

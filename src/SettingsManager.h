@@ -49,6 +49,7 @@ public:
 	QString cameraVideoCodec() const;        void setCameraVideoCodec(const QString &codec);
 	QString cameraQuality() const;           void setCameraQuality(const QString &q);
 	QString cameraAudioFormat() const;       void setCameraAudioFormat(const QString &fmt);
+	bool    cameraAutoStart() const;         void setCameraAutoStart(bool v);
 	
 	// ---- 录屏 ----
 	int     screenFps() const;               void setScreenFps(int fps);

@@ -184,6 +184,14 @@ void SettingsManager::setCameraAudioFormat(const QString &fmt) {
 	emit settingsChanged();
 }
 
+bool SettingsManager::cameraAutoStart() const {
+	return QSettings().value("camera/autoStart", false).toBool();
+}
+void SettingsManager::setCameraAutoStart(bool v) {
+	QSettings().setValue("camera/autoStart", v);
+	emit settingsChanged();
+}
+
 // ---------- 录屏 ----------
 int SettingsManager::screenFps() const {
 	return QSettings().value("screen/fps", 30).toInt();

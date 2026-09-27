@@ -77,6 +77,16 @@ QTabBar::tab:selected {
 }
 QTabBar::tab:disabled { color: #5f6368; }
 
+/* ★ 末尾 "+" tab（新建标签按钮）：固定 28px 宽，紧贴所有标签 */
+QTabBar::tab:last {
+    min-width: 28px;
+    max-width: 28px;
+    padding: 8px 0;
+    margin-right: 0;
+    color: #9aa0a6;
+}
+QTabBar::tab:last:hover  { background: #3c4043; color: #e8eaed; }
+
 QTabBar::close-button { image: none; subcontrol-position: right; }
 QTabBar::close-button:hover { background: #5f6368; border-radius: 8px; }
 
@@ -124,6 +134,15 @@ QPushButton[flat="true"] {
 }
 QPushButton[flat="true"]:hover   { background: #3c4043; }
 QPushButton[flat="true"]:pressed { background: #5f6368; }
+
+/* ★ 导航栏按钮：紧凑 padding，避免文字被截断 */
+QPushButton[navBtn="true"] {
+    padding: 4px 4px;
+    min-height: 20px;
+}
+QPushButton[navBtn="true"]:hover    { background: #4a4d51; border-color: #5f6368; }
+QPushButton[navBtn="true"]:pressed  { background: #5f6368; }
+QPushButton[navBtn="true"]:disabled { background: #2d2e31; color: #5f6368; border-color: #3c4043; }
 
 /* ============================================================
    输入框
