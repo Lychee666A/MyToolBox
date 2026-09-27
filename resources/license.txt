@@ -1,0 +1,7 @@
+多功能轻量工具箱 (MyToolBox)
+Copyright (C) 2025 Lychee666
+
+本程序为自由软件；您可依据 GNU 通用公共许可证（GPLv3）条款重新发布和/或修改它。
+本程序按"原样"发布，不带任何担保。
+
+完整许可证请见：https://www.gnu.org/licenses/gpl-3.0.html
