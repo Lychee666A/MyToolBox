@@ -449,4 +449,4 @@ Copyright (C) 2025 Lychee666. All rights reserved.
 ---
 
 **MyToolBox** 是一个 Windows 桌面端的多功能轻量工具箱，将日常开发、办公中常用的小工具集成到一个程序中，避免安装一堆独立软件。
->>>>>>> e6e697f833300592405fa4a6b7e67918746e14de
+> e6e697f833300592405fa4a6b7e67918746e14de
