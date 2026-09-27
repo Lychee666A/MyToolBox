@@ -240,6 +240,7 @@ void WebBrowserWidget::buildBrowserPage(QWidget *page) {
 
 	// ---- QTabWidget ----
 	m_tabWidget = new QTabWidget(page);
+	m_tabWidget->setObjectName("browserTabWidget");
 	m_tabWidget->setTabsClosable(true);
 	m_tabWidget->setMovable(true);
 	m_tabWidget->setDocumentMode(true);

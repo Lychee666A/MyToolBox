@@ -75,15 +75,18 @@ QTabBar::tab:selected {
 }
 QTabBar::tab:disabled { color: #bdc1c6; }
 
-/* ★ 末尾 "+" tab（新建标签按钮）：固定 28px 宽，紧贴所有标签 */
-QTabBar::tab:last {
+/* ★ 浏览器内标签条的末尾 "+" tab：固定 28px 宽 */
+QTabWidget#browserTabWidget > QTabBar::tab:last {
     min-width: 28px;
     max-width: 28px;
     padding: 8px 0;
     margin-right: 0;
     color: #5f6368;
 }
-QTabBar::tab:last:hover  { background: #e8eaed; color: #202124; }
+QTabWidget#browserTabWidget > QTabBar::tab:last:hover {
+    background: #e8eaed;
+    color: #202124;
+}
 
 QTabBar::close-button { image: none; subcontrol-position: right; }
 QTabBar::close-button:hover { background: #dadce0; border-radius: 8px; }

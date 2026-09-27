@@ -14,7 +14,7 @@ set(MY_APP_NAME           "MyToolBox")
 set(MY_APP_DISPLAY_NAME   "多功能轻量工具箱")
 
 # ★ 语义化版本主体（手动维护，发新版本时改这里）
-set(MY_APP_VERSION_CORE   "1.0.7")
+set(MY_APP_VERSION_CORE   "1.0.8")
 
 set(MY_APP_COMPANY        "Lychee666")
 set(MY_APP_DESCRIPTION    "集成拍照、录像、录屏、播放、压缩包预览、图片查看、文件搜索、内嵌浏览器的轻量工具箱")

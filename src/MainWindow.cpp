@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
 	setMinimumSize(900, 600);
 	
 	m_tabs = new QTabWidget(this);
+	m_tabs->setObjectName("mainTabWidget");
 	m_tabs->setMovable(true);
 	m_tabs->setDocumentMode(true);
 	setCentralWidget(m_tabs);
