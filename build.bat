@@ -2,10 +2,12 @@
 chcp 65001 >nul
 setlocal EnableDelayedExpansion
 
+cd /d "%~dp0"
+
 title Build MyToolBox
 
 REM ============================================================
-REM  0. 参数解析（提前判断是否 --pack）
+REM  0. 参数解析
 REM ============================================================
 set "PACK=%~1"
 set "SKIP_BUILD=0"
@@ -13,7 +15,7 @@ if /i "%PACK%"=="--pack"  set "SKIP_BUILD=1"
 if /i "%PACK%"=="-p"      set "SKIP_BUILD=1"
 
 REM ============================================================
-REM  1. 杀掉可能占用文件的进程
+REM  1. 杀进程
 REM ============================================================
 if "%SKIP_BUILD%"=="0" (
     taskkill /f /im MyToolBox.exe 2>nul
@@ -53,7 +55,7 @@ if "%SKIP_BUILD%"=="0" (
 )
 
 REM ============================================================
-REM  3. 清理 build 目录（仅编译时）
+REM  3. 清理 build
 REM ============================================================
 if "%SKIP_BUILD%"=="0" (
     if exist build rmdir /s /q build
@@ -65,7 +67,7 @@ if "%SKIP_BUILD%"=="0" (
 )
 
 REM ============================================================
-REM  4. 编译（仅编译时）
+REM  4. 编译
 REM ============================================================
 if "%SKIP_BUILD%"=="0" (
     call "%~dp0build_inner.bat"
@@ -81,7 +83,7 @@ if "%SKIP_BUILD%"=="0" (
 )
 
 REM ============================================================
-REM  5. 询问是否打包
+REM  5. 询问打包
 REM ============================================================
 if /i "%PACK%"=="--pack" goto :do_pack
 if /i "%PACK%"=="-p"     goto :do_pack
@@ -136,16 +138,50 @@ if not defined ISCC (
     pause & goto :skip_pack
 )
 
-REM ★ 打印 ISCC 路径（用 set 避免 () 断句问题）
-echo 使用 ISCC:
+REM 打印 ISCC 路径
 set ISCC
 
-REM ---- 5.2 版本号 ----
-set "APP_VER=1.0.0"
-for /f "tokens=3" %%V in ('findstr /r /c:"project(MyToolBox VERSION" "%~dp0CMakeLists.txt" 2^>nul') do (
-    set "APP_VER=%%V"
+REM ---- 5.2 版本号（拼完整版：1.0.0-0.N.0+hash）----
+set "APP_VER_CORE=1.0.0"
+set "APP_VER_BUILD=0"
+set "APP_VER_HASH=nogit"
+
+REM 从 CMakeLists.txt 抓 MY_APP_VERSION_CORE
+for /f "tokens=2 delims==" %%V in ('findstr /r /c:"set(MY_APP_VERSION_CORE" "%~dp0CMakeLists.txt" 2^>nul') do (
+    set "APP_VER_CORE=%%V"
 )
-echo 版本号: %APP_VER%
+set "APP_VER_CORE=!APP_VER_CORE: =!"
+set "APP_VER_CORE=!APP_VER_CORE:"=!"
+set "APP_VER_CORE=!APP_VER_CORE:)=!"
+
+REM 从 version.txt 抓构建号
+if exist "%~dp0version.txt" (
+    set /p APP_VER_BUILD=<"%~dp0version.txt"
+    set "APP_VER_BUILD=!APP_VER_BUILD: =!"
+)
+
+REM ★ 从 git 抓短 hash —— 用 PowerShell 脚本（避免 for /f 的坑）
+set "HASH_TMP=%TEMP%\mytoolbox_git_hash.txt"
+if exist "%HASH_TMP%" del /f /q "%HASH_TMP%" 2>nul
+
+powershell -NoProfile -ExecutionPolicy Bypass ^
+    -File "%~dp0tools\get_git_hash.ps1" ^
+    "%HASH_TMP%"
+
+if exist "%HASH_TMP%" (
+    set /p APP_VER_HASH=<"%HASH_TMP%"
+    del /f /q "%HASH_TMP%" 2>nul
+)
+REM 去掉可能的尾随空格
+set "APP_VER_HASH=!APP_VER_HASH: =!"
+
+REM 拼完整版本号：1.0.0-0.N.0+hash
+set "APP_VER=!APP_VER_CORE!-0.!APP_VER_BUILD!.0+!APP_VER_HASH!"
+REM 用于文件名的版本号（去掉 +hash，避免 URL 编码）
+set "APP_VER_FILE=!APP_VER_CORE!-0.!APP_VER_BUILD!.0"
+
+echo 完整版本号:    !APP_VER!
+echo 安装包版本号:  !APP_VER_FILE!
 
 REM ---- 5.3 源目录 / 输出目录 ----
 set "SRC_DIR=%~dp0build\Release"
@@ -162,7 +198,7 @@ REM ---- 5.4 调 ISCC ----
 echo.
 echo 调用 ISCC 打包...
 "%ISCC%" ^
-    /DMyAppVersion="%APP_VER%" ^
+    /DMyAppVersion="!APP_VER_FILE!" ^
     /DMySourceDir="%SRC_DIR%" ^
     /DMyOutputDir="%OUT_DIR%" ^
     "%~dp0installer\MyToolBox.iss"
