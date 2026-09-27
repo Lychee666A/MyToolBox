@@ -1,0 +1,27 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "CMAKE_PREFIX_PATH",
+          "value": "F:/Qt/6.11.2/msvc2022_64",
+          "type": "PATH"
+        },
+        {
+          "name": "CMAKE_RC_COMPILER",
+          "value": "C:/Program Files (x86)/Windows Kits/10/bin/10.0.28000.0/x64/rc.exe",
+          "type": "FILEPATH"
+        }
+      ]
+    }
+  ]
+}

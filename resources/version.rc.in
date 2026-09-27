@@ -1,0 +1,45 @@
+#pragma code_page(65001)
+
+#include <windows.h>
+
+// ============================================================
+//  图标
+// ============================================================
+IDI_ICON1 ICON "@ICON_PATH_FWD@"
+
+// ============================================================
+//  版本信息（右键 exe → 属性 → 详细信息）
+// ============================================================
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    @VER_MAJOR@,@VER_MINOR@,@VER_PATCH@,@VER_BUILD@
+ PRODUCTVERSION @VER_MAJOR@,@VER_MINOR@,@VER_PATCH@,@VER_BUILD@
+ FILEFLAGSMASK  0x3fL
+#ifdef _DEBUG
+ FILEFLAGS      0x1L
+#else
+ FILEFLAGS      0x0L
+#endif
+ FILEOS         VOS_NT_WINDOWS32
+ FILETYPE       VFT_APP
+ FILESUBTYPE    VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404b0"
+        BEGIN
+            VALUE "CompanyName",      "@MY_APP_COMPANY@"
+            VALUE "FileDescription",  "@MY_APP_DESCRIPTION@"
+            VALUE "FileVersion",      "@MY_APP_VERSION@"
+            VALUE "InternalName",     "@MY_APP_NAME@"
+            VALUE "LegalCopyright",   "@MY_APP_COPYRIGHT@"
+            VALUE "OriginalFilename", "@MY_APP_ORIGINAL_FILE@"
+            VALUE "ProductName",      "@MY_APP_DISPLAY_NAME@"
+            VALUE "ProductVersion",   "@MY_APP_VERSION@"
+            VALUE "Comments",         "@MY_APP_COMMENTS@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
